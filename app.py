@@ -61,25 +61,33 @@ def load_and_process_pdfs_with_metadata(folder_path: str):
 # Это значит, что PDF будет обрабатываться и база создаваться только один раз при первом запуске.
 @st.cache_resource
 def setup_database(folder_path):
-    # Получаем и чанки, и метаданные
-    chunks, metadatas = load_and_process_pdfs_with_metadata(folder_path)
-    
-    st.info("Создание и настройка векторной базы данных (ChromaDB)...")
-    client = chromadb.Client()
+    st.info("Инициализация базы данных...")
+    client = chromadb.PersistentClient(path="./chroma_db")
     embedding_function = GeminiEmbeddingFunction()
+    
     collection = client.get_or_create_collection(
         name="gitlab_handbook_collection",
         embedding_function=embedding_function
     )
     
+    # --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ---
+    # Проверяем, есть ли уже документы в коллекции
+    if collection.count() > 0:
+        st.sidebar.success("База данных успешно загружена из локального хранилища.")
+        return collection
+    
+    # Если коллекция пуста, то выполняем полную загрузку
+    st.sidebar.warning("База данных не найдена. Запускаю полную индексацию документов. Это может занять несколько минут...")
+    
+    chunks, metadatas = load_and_process_pdfs_with_metadata(folder_path)
+    
     st.info("Добавление чанков в базу данных...")
-    # Используем специальный параметр 'metadatas' при добавлении
     collection.add(
         ids=[str(i) for i in range(len(chunks))],
         documents=chunks,
-        metadatas=metadatas # <-- Вот здесь мы передаем метаданные
+        metadatas=metadatas
     )
-    st.success("База данных готова к работе!")
+    st.sidebar.success("База данных успешно создана и готова к работе!")
     return collection
 
 
@@ -155,27 +163,56 @@ def get_response(user_query: str, collection) -> tuple[str, str]:
 
 # --- ИНТЕРФЕЙС ПРИЛОЖЕНИЯ (UI) ---
 st.title("GitLab Onboarding Assistant 🚀")
-st.info("Бот, отвечающий на вопросы по документации GitLab.")
+st.info("Этот ассистент отвечает на вопросы по внутренней документации GitLab, используя RAG-технологию. Попробуйте спросить что-нибудь!")
 
-if model_initialized:
-    st.sidebar.success(f"База данных успешно загружена. Количество документов: {db_collection.count()}")
+# --- РЕШЕНИЕ ПРОБЛЕМЫ 1: Примеры вопросов ---
+st.subheader("Или попробуйте один из этих примеров:")
 
-query = st.text_input("Задайте ваш вопрос:", placeholder="Например: как создать новый merge request?")
+# Создаем три колонки для кнопок
+col1, col2, col3 = st.columns(3)
 
-if st.button("Отправить", type="primary", disabled=not model_initialized):
+# Список вопросов
+example_questions = [
+    "What are the six core values of GitLab?",
+    "Describe the process for taking time off.",
+    "What is GitLab's philosophy on 'boring solutions'?"
+]
+
+# Функция для обработки нажатия кнопки
+def run_query(question):
+    with st.spinner("Анализирую документы и генерирую ответ..."):
+        response, sources = get_response(question, db_collection)
+    
+    st.session_state.response = response
+    st.session_state.sources = sources
+
+with col1:
+    if st.button(example_questions[0]):
+        run_query(example_questions[0])
+        
+with col2:
+    if st.button(example_questions[1]):
+        run_query(example_questions[1])
+
+with col3:
+    if st.button(example_questions[2]):
+        run_query(example_questions[2])
+
+st.divider() # Горизонтальная черта для разделения
+
+# --- Основное поле ввода ---
+query = st.text_input("Задайте ваш вопрос здесь:", placeholder="Например: как происходит процесс онбординга?")
+
+if st.button("Отправить", type="primary"):
     if query:
-        with st.spinner("Анализирую документы и генерирую ответ..."):
-            # Теперь функция возвращает и ответ, и источники
-            response, sources = get_response(query, db_collection)
-        
-        st.success("Ответ:")
-        st.markdown(response)
-        
-        # Добавляем выпадающий список для просмотра источников
-        with st.expander("Показать источники, на которых основан ответ"):
-            st.markdown(sources)
+        run_query(query)
     else:
         st.warning("Пожалуйста, введите ваш вопрос.")
 
-if not model_initialized:
-    st.error("Не удалось загрузить модель или базу данных. Проверьте API ключ и наличие PDF файла.")
+# Используем st.session_state, чтобы ответ не пропадал при взаимодействии с другими элементами
+if 'response' in st.session_state:
+    st.success("Ответ, сгенерированный на основе документов:")
+    st.markdown(st.session_state.response)
+    
+    with st.expander("✅ Показать источники и проверить ответ"):
+        st.markdown(st.session_state.sources)
