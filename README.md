@@ -42,8 +42,8 @@ RAG-система для быстрого онбординга новых со�
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Streamlit UI  │────▶│   LangChain      │────▶│   Gemini API    │
-│   (Frontend)    │     │   RAG Pipeline   │     │   (Embeddings)  │
+│   Streamlit UI  │────▶│   rag_core.py    │────▶│   Gemini API    │
+│   (Frontend)    │     │   (RAG Logic)    │     │   (Embeddings)  │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
                                │                          │
                                ▼                          ▼
@@ -52,15 +52,6 @@ RAG-система для быстрого онбординга новых со�
                         │  Vector Store    │     │   (Generation)  │
                         └──────────────────┘     └─────────────────┘
 ```
-
-### Компоненты системы:
-
-1. **Document Loader** - загрузка и обработка PDF документов
-2. **Text Splitter** - интеллектуальное разбиение на чанки
-3. **Embedding Model** - Gemini text-embedding-004
-4. **Vector Store** - ChromaDB с персистентным хранением
-5. **Retriever** - поиск релевантных чанков
-6. **LLM** - Gemini 1.5 Flash для генерации ответов
 
 ## 💻 Установка и запуск
 
@@ -104,69 +95,6 @@ streamlit run app.py
 
 Приложение откроется в браузере: http://localhost:8501
 
-## 🧠 RAG Pipeline
-
-### 1. Индексация документов
-
-```python
-# Загрузка PDF
-def load_and_process_pdfs(folder_path):
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=100
-    )
-    # Обработка каждого PDF...
-```
-
-### 2. Создание эмбеддингов
-
-```python
-class GeminiEmbeddingFunction(EmbeddingFunction):
-    def __call__(self, input: Documents) -> Embeddings:
-        return genai.embed_content(
-            model='models/text-embedding-004',
-            content=input,
-            task_type="retrieval_document"
-        )["embedding"]
-```
-
-### 3. Retrieval + Generation
-
-```python
-def get_response(user_query: str, collection) -> tuple[str, str]:
-    # 1. Поиск релевантных чанков
-    results = collection.query(
-        query_texts=[user_query],
-        n_results=3
-    )
-    
-    # 2. Создание промпта с контекстом
-    # 3. Генерация ответа через LLM
-    return final_response, sources
-```
-
-## 📊 Оптимизации производительности
-
-### Кэширование
-- Векторная БД сохраняется локально (`./chroma_db`)
-- Используется `@st.cache_resource` для одноразовой загрузки
-- Повторная индексация только при изменении документов
-
-### Скорость поиска
-- **Baseline**: 8 секунд на ответ
-- **После оптимизации**: 2.3 секунды
-- **Методы**: 
-  - Уменьшение n_results с 5 до 3
-  - Оптимальный chunk_size (1000 символов)
-  - Персистентное хранение векторов
-
-## 🎨 UI/UX особенности
-
-- **Примеры вопросов** одним кликом
-- **Показ источников** для проверки ответов
-- **Индикатор загрузки** с понятными сообщениями
-- **Адаптивный дизайн** для всех устройств
-
 ## 🔧 Конфигурация
 
 ### Настройка параметров в `app.py`:
@@ -183,15 +111,6 @@ N_RESULTS = 3            # Количество чанков для контек
 MODEL_NAME = 'gemini-1.5-flash'
 EMBEDDING_MODEL = 'models/text-embedding-004'
 ```
-
-## 📈 Метрики и мониторинг
-
-### KPI системы:
-- **Relevance Score**: 89% (точность ответов)
-- **Response Time**: p50=2.1s, p95=3.2s, p99=4.5s
-- **Index Size**: 3,200 чанков, ~150MB
-- **Query Success Rate**: 98.5%
-
 ### Логирование:
 ```python
 # Включение детального логирования
@@ -258,13 +177,6 @@ logging.basicConfig(level=logging.INFO)
 ```bash
 pytest -v
 
-## 🔒 Безопасность
-
-- API ключи хранятся в `secrets.toml` (не в коде)
-- Векторная БД локальная (данные не уходят вовне)
-- Нет логирования пользовательских запросов
-- HTTPS only для production
-
 ## 🚢 Roadmap
 
 - [ ] Поддержка других форматов (DOCX, TXT, MD)
@@ -277,14 +189,6 @@ pytest -v
 - [ ] Fine-tuning на корпоративном стиле
 - [ ] Интеграция с Slack/Teams
 - [ ] A/B тестирование ответов
-
-## 🤝 Как контрибьютить
-
-1. Fork репозитория
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменения (`git commit -m 'Add AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Откройте Pull Request
 
 ### Приоритетные улучшения:
 - Улучшение качества чанкинга
