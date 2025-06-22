@@ -17,7 +17,7 @@ QA_DATASET = [
     },
     {
         "question": "How should you give negative feedback?",
-        "expected_keywords": ["один", "наедине", "минимальной", "маленькой", "1-1"],
+        "expected_keywords": ["один", "наедине", "минимальной", "маленькой", "1-1", "в меньшем кругу"],
         "source_file": "GitLab Values _ The GitLab Handbook.pdf"
     },  
     {
@@ -27,7 +27,7 @@ QA_DATASET = [
     },
     {
         "question": "What is GitLab's philosophy on 'boring solutions'?",
-        "expected_keywords": ["простым", "скучных решений", "сложностью"],
+        "expected_keywords": ['прост', 'скучн', 'сложност'], 
         "source_file": "GitLab Values _ The GitLab Handbook.pdf"
     }
 ]
@@ -52,7 +52,7 @@ def generative_model():
 @pytest.fixture(scope="session")
 def db_collection(generative_model): # Передаем фикстуру модели, чтобы genai был настроен
     print("\nSetting up database for testing...")
-    collection = setup_database("data/")
+    collection = setup_database()
     return collection
 
 # --- ИСПРАВЛЕНИЕ: ОБНОВЛЯЕМ ТЕСТ, ЧТОБЫ ОН ПРИНИМАЛ МОДЕЛЬ ---

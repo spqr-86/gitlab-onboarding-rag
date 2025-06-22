@@ -9,7 +9,7 @@ try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     model = genai.GenerativeModel('gemini-1.5-flash')
     PDF_FOLDER_PATH = "data/"
-    db_collection = setup_database(PDF_FOLDER_PATH)
+    db_collection = setup_database()
     model_initialized = True
 except Exception as e:
     st.error(f"Ошибка инициализации модели: {e}")

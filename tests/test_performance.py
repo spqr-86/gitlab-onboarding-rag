@@ -34,7 +34,7 @@ def generative_model():
 @pytest.fixture(scope="session")
 def db_collection(generative_model):
     print("\nSetting up database for performance test...")
-    collection = setup_database("data/")
+    collection = setup_database()
     return collection
 
 # --- Основная логика теста производительности ---

@@ -7,6 +7,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from dotenv import load_dotenv
 import pypdf
 
+from config import (
+    PDF_FOLDER_PATH, DB_PATH, COLLECTION_NAME, CHUNK_SIZE, 
+    CHUNK_OVERLAP, N_RESULTS, EMBEDDING_MODEL
+)
+from prompts import PROMPT_TEMPLATE
+
+
 load_dotenv()
 
 # Класс для интеграции эмбеддингов Gemini с ChromaDB
@@ -21,7 +28,7 @@ class GeminiEmbeddingFunction(EmbeddingFunction):
     def __call__(self, input: Documents) -> Embeddings:
         model = 'models/text-embedding-004'
         title = "Custom query"
-        return genai.embed_content(model=model,
+        return genai.embed_content(model=EMBEDDING_MODEL,
                                    content=input,
                                    task_type="retrieval_document",
                                    title=title)["embedding"]
@@ -35,11 +42,11 @@ def load_and_process_pdfs_with_metadata(folder_path: str):
     all_metadatas = []
 
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=100
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP
     )
 
-    for filename in os.listdir(folder_path):
+    for filename in os.listdir():
         if filename.endswith(".pdf"):
             file_path = os.path.join(folder_path, filename)
             st.write(f"Обработка файла: {filename}")
@@ -68,13 +75,13 @@ def load_and_process_pdfs_with_metadata(folder_path: str):
 # @st.cache_resource - этот декоратор кэширует результат функции.
 # Это значит, что PDF будет обрабатываться и база создаваться только один раз при первом запуске.
 @st.cache_resource
-def setup_database(folder_path):
+def setup_database():
     st.info("Инициализация базы данных...")
-    client = chromadb.PersistentClient(path="./chroma_db")
+    client = chromadb.PersistentClient(path=DB_PATH)
     embedding_function = GeminiEmbeddingFunction()
     
     collection = client.get_or_create_collection(
-        name="gitlab_handbook_collection",
+        name=COLLECTION_NAME,
         embedding_function=embedding_function
     )
     
@@ -87,7 +94,7 @@ def setup_database(folder_path):
     # Если коллекция пуста, то выполняем полную загрузку
     st.sidebar.warning("База данных не найдена. Запускаю полную индексацию документов. Это может занять несколько минут...")
     
-    chunks, metadatas = load_and_process_pdfs_with_metadata(folder_path)
+    chunks, metadatas = load_and_process_pdfs_with_metadata(PDF_FOLDER_PATH)
     
     st.info("Добавление чанков в базу данных...")
     collection.add(
@@ -111,7 +118,7 @@ def get_response(user_query: str, collection, model) -> tuple[str, str]:
     # 1. Извлечение (Retrieval)
     results = collection.query(
         query_texts=[user_query],
-        n_results=3, # Берем 3 наиболее релевантных чанка
+        n_results=N_RESULTS,
         include=['documents', 'metadatas']
     )
     retrieved_docs = results['documents'][0]
@@ -125,33 +132,14 @@ def get_response(user_query: str, collection, model) -> tuple[str, str]:
         sources_text += f"{doc}\n\n---\n\n"
 
     # 2. Дополнение (Augmentation) - Создание промпта
-    prompt_template = f"""
-    Ты — полезный и информативный ассистент по онбордингу в компании GitLab. 
-    Твоя задача — отвечать на вопросы новых сотрудников, основываясь ИСКЛЮЧИТЕЛЬНО на предоставленных тебе фрагментах текста на английском языке из внутренней документации ('PASSAGES').
-
-    ***ВАЖНО: Твой финальный ответ всегда должен быть на РУССКОМ ЯЗЫКЕ.***
-
-    Тон твоего ответа должен быть дружелюбным и профессиональным.
-    Структурируй ответ так, чтобы его было легко читать. Используй списки, если это уместно.
-    
-    Если информация для ответа на вопрос отсутствует в предоставленных фрагментах, вежливо ответь по-русски: 
-    "К сожалению, я не смог найти точную информацию по вашему вопросу в доступной мне документации."
-    Не придумывай ничего от себя.
-
-    Вот фрагменты документации на английском:
-    PASSAGES:
-    {retrieved_docs}
-
-    А вот вопрос пользователя (он может быть на любом языке):
-    QUESTION:
-    {user_query}
-
-    ANSWER (на русском языке):
-    """
+    prompt = PROMPT_TEMPLATE.format(
+        retrieved_docs=retrieved_docs,
+        user_query=user_query
+    )
 
     # 3. Генерация (Generation)
     try:
-        final_response = model.generate_content(prompt_template)
+        final_response = model.generate_content(prompt)
         return final_response.text, sources_text
     except Exception as e:
         return f"Произошла ошибка при генерации ответа: {e}", ""
