@@ -57,71 +57,6 @@ RAG-система для быстрого онбординга новых со�
 
 ### Требования
 - Python 3.11+
-- Google AI Studio API Key
-- 2GB свободного места для векторной БД
-
-### Быстрый старт
-
-```bash
-# Клонирование репозитория
-git clone https://github.com/spqr-86/gitlab-onboarding-rag.git
-cd gitlab-onboarding-rag
-
-# Создание виртуального окружения
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Установка зависимостей
-pip install -r requirements.txt
-
-# Создание директории для документов
-mkdir -p data
-# Поместите PDF файлы документации в папку data/
-```
-
-### Настройка API ключа
-
-1. Получите API ключ на [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Создайте файл `.streamlit/secrets.toml`:
-```toml
-GOOGLE_API_KEY = "your-api-key-here"
-```
-
-### Запуск приложения
-
-```bash
-streamlit run app.py
-```
-
-Приложение откроется в браузере: http://localhost:8501
-
-## 🔧 Конфигурация
-
-### Настройка параметров в `app.py`:
-
-```python
-# Параметры чанкинга
-CHUNK_SIZE = 1000        # Размер чанка
-CHUNK_OVERLAP = 100      # Перекрытие чанков
-
-# Параметры поиска
-N_RESULTS = 3            # Количество чанков для контекста
-
-# Модель
-MODEL_NAME = 'gemini-1.5-flash'
-EMBEDDING_MODEL = 'models/text-embedding-004'
-```
-### Логирование:
-```python
-# Включение детального логирования
-import logging
-logging.basicConfig(level=logging.INFO)
-```
-
-## 💻 Установка и запуск
-
-### Требования
-- Python 3.11+
 - Docker (рекомендуется)
 - Google AI Studio API Key
 
@@ -167,6 +102,37 @@ logging.basicConfig(level=logging.INFO)
     streamlit run app.py
     ```
 
+### Запуск приложения
+
+```bash
+streamlit run app.py
+```
+
+Приложение откроется в браузере: http://localhost:8501
+
+## 🔧 Конфигурация
+
+### Настройка параметров в `app.py`:
+
+```python
+# Параметры чанкинга
+CHUNK_SIZE = 1000        # Размер чанка
+CHUNK_OVERLAP = 100      # Перекрытие чанков
+
+# Параметры поиска
+N_RESULTS = 3            # Количество чанков для контекста
+
+# Модель
+MODEL_NAME = 'gemini-1.5-flash'
+EMBEDDING_MODEL = 'models/text-embedding-004'
+```
+### Логирование:
+```python
+# Включение детального логирования
+import logging
+logging.basicConfig(level=logging.INFO)
+```
+
 ## 🧪 Тестирование
 Проект покрыт автоматическими тестами с использованием `pytest`.
 
@@ -182,10 +148,10 @@ pytest -v
 
 - [ ] Поддержка других форматов (DOCX, TXT, MD)
 - [ ] Мультиязычный UI (полностью на русском)
-- [ ] Расширить тестовый набор QA_DATASET для более точной оценки качества.
-- [ ] Улучшить логику извлечения источников, чтобы указывать не только файл, но и номер страницы.
-- [ ] Добавить в UI возможность выбора языка ответа (русский/английский).
-- [ ] Реализовать историю чата для сохранения контекста беседы.
+- [ ] Расширить тестовый набор QA_DATASET для более точной оценки качества
+- [ ] Улучшить логику извлечения источников, чтобы указывать не только файл, но и номер страницы
+- [ ] Добавить в UI возможность выбора языка ответа (русский/английский)
+- [ ] Реализовать историю чата для сохранения контекста беседы
 - [ ] Экспорт ответов в PDF
 - [ ] Fine-tuning на корпоративном стиле
 - [ ] Интеграция с Slack/Teams
