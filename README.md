@@ -1,9 +1,7 @@
 # 📚 GitLab Onboarding Assistant
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-000000?style=for-the-badge&logo=database&logoColor=white)](https://www.trychroma.com/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org) [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io) [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/) [![pytest](https://img.shields.io/badge/pytest-0A9B5C?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org) [![ChromaDB](https://img.shields.io/badge/ChromaDB-000000?style=for-the-badge&logo=database&logoColor=white)](https://www.trychroma.com/)
+
 
 ## 📋 Описание проекта
 
@@ -34,8 +32,6 @@ RAG-система для быстрого онбординга новых со�
 • "Как оформить отпуск?"
 • "Describe the process for taking time off"
 • "Какая философия у GitLab насчет boring solutions?"
-• "How does the remote work policy work?"
-• "Где найти информацию о бенефитах?"
 ```
 
 ## 🏗️ Архитектура
@@ -102,37 +98,6 @@ RAG-система для быстрого онбординга новых со�
     streamlit run app.py
     ```
 
-### Запуск приложения
-
-```bash
-streamlit run app.py
-```
-
-Приложение откроется в браузере: http://localhost:8501
-
-## 🔧 Конфигурация
-
-### Настройка параметров в `app.py`:
-
-```python
-# Параметры чанкинга
-CHUNK_SIZE = 1000        # Размер чанка
-CHUNK_OVERLAP = 100      # Перекрытие чанков
-
-# Параметры поиска
-N_RESULTS = 3            # Количество чанков для контекста
-
-# Модель
-MODEL_NAME = 'gemini-1.5-flash'
-EMBEDDING_MODEL = 'models/text-embedding-004'
-```
-### Логирование:
-```python
-# Включение детального логирования
-import logging
-logging.basicConfig(level=logging.INFO)
-```
-
 ## 🧪 Тестирование
 Проект покрыт автоматическими тестами с использованием `pytest`.
 
@@ -144,18 +109,14 @@ logging.basicConfig(level=logging.INFO)
 pytest -v
 ```
 
-## 🚢 Roadmap
+## 🚢 Roadmap и возможные улучшения
 
-- [ ] Поддержка других форматов (DOCX, TXT, MD)
-- [ ] Мультиязычный UI (полностью на русском)
-- [ ] Расширить тестовый набор QA_DATASET для более точной оценки качества
-- [ ] Улучшить логику извлечения источников, чтобы указывать не только файл, но и номер страницы
-- [ ] Добавить в UI возможность выбора языка ответа (русский/английский)
-- [ ] Реализовать историю чата для сохранения контекста беседы
-- [ ] Экспорт ответов в PDF
-- [ ] Fine-tuning на корпоративном стиле
-- [ ] Интеграция с Slack/Teams
-- [ ] A/B тестирование ответов
+- [ ] **Расширить тестовый набор `QA_DATASET`** для более точной оценки качества.
+- [ ] **Улучшить логику извлечения источников**, чтобы указывать не только файл, но и номер страницы.
+- [ ] **Добавить в UI возможность выбора языка ответа** (русский/английский).
+- [ ] **Оптимизировать промпты** для еще более точных и лаконичных ответов.
+- [ ] **Реализовать историю чата** для сохранения контекста беседы.
+- [ ] **Добавить поддержку новых форматов документов** (DOCX, MD).
 
 ### Приоритетные улучшения:
 - Улучшение качества чанкинга
@@ -165,8 +126,10 @@ pytest -v
 
 ## 📚 Использованные технологии
 
-- **Streamlit** - быстрое создание веб-интерфейса
-- **ChromaDB** - векторная база данных
-- **Google Gemini** - эмбеддинги и генерация
-- **PyPDF** - обработка PDF документов
+- **Streamlit**: Быстрое создание веб-интерфейса.
+- **Google Gemini**: Генерация ответов и создание эмбеддингов.
+- **ChromaDB**: Локальная векторная база данных.
+- **PyPDF**: Обработка PDF-документов.
+- **Pytest**: Автоматизированное тестирование.
+- **Docker**: Контейнеризация для легкого развертывания.
 
