@@ -174,8 +174,7 @@ logging.basicConfig(level=logging.INFO)
 * `tests/test_performance.py`: Измеряет скорость генерации ответов.
 
 Для запуска всех тестов выполните команду в корне проекта (убедитесь, что venv активировано и ключ API установлен):
-```bash
-pytest -v
+```bash pytest -v
 
 ## 🚢 Roadmap
 
